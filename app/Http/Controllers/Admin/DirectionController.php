@@ -81,9 +81,31 @@ class DirectionController extends Controller
      */
     public function destroy(Direction $direction)
     {
-        $direction->update(['actif' => false]);
+        try {
+            // Vérifier s'il y a des employés liés
+            $employes_count = \App\Models\Employe::where('direction_id', $direction->id)->count();
 
-        return redirect()->route('admin.directions.index')
-            ->with('success', 'Direction désactivée avec succès');
+            if ($employes_count > 0) {
+                return redirect()->route('admin.directions.index')
+                    ->with('error', "Impossible de supprimer cette direction : {$employes_count} employé(s) y sont rattachés.");
+            }
+
+            // Vérifier s'il y a des magasins liés
+            $magasins_count = \App\Models\Magasin::where('direction_id', $direction->id)->count();
+
+            if ($magasins_count > 0) {
+                return redirect()->route('admin.directions.index')
+                    ->with('error', "Impossible de supprimer cette direction : {$magasins_count} magasin(s) y sont rattachés.");
+            }
+
+            // Suppression réelle
+            $direction->delete();
+
+            return redirect()->route('admin.directions.index')
+                ->with('success', 'Direction supprimée définitivement avec succès');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.directions.index')
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
     }
 }

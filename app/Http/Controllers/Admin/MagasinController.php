@@ -87,9 +87,23 @@ class MagasinController extends Controller
      */
     public function destroy(Magasin $magasin)
     {
-        $magasin->update(['actif' => false]);
+        try {
+            // Vérifier s'il y a des articles liés
+            $articles_count = \App\Models\Unite::where('magasin_id', $magasin->id)->count();
 
-        return redirect()->route('admin.magasins.index')
-            ->with('success', 'Magasin supprimé avec succès');
+            if ($articles_count > 0) {
+                return redirect()->route('admin.magasins.index')
+                    ->with('error', "Impossible de supprimer ce magasin : {$articles_count} article(s) y sont stockés. Veuillez d'abord déplacer ou supprimer ces articles.");
+            }
+
+            // Suppression réelle
+            $magasin->delete();
+
+            return redirect()->route('admin.magasins.index')
+                ->with('success', 'Magasin supprimé définitivement avec succès');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.magasins.index')
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
     }
 }

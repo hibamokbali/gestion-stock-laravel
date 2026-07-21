@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Categorie;
+use App\Models\ConfigurationSeuil;
 use App\Models\Magasin;
 use App\Models\Unite;
 use Illuminate\Http\Request;
@@ -91,18 +92,51 @@ class UniteController extends Controller
             ->with('success', 'Article modifié avec succès');
     }
 
-    public function destroy($id)
+    public function destroy(Unite $unite)
     {
-        $unite = Unite::findOrFail($id);
+        try {
+            // Vérifier s'il y a des entrées liées
+            $entrees_count = \App\Models\Entree::where('unite_id', $unite->id)->count();
 
-        // Vérifier s'il y a des mouvements de stock
-        if ($unite->entrees()->count() > 0 || $unite->sorties()->count() > 0) {
-            return back()->with('error', 'Impossible de supprimer cet article car il a des mouvements de stock.');
+            // Vérifier s'il y a des sorties liées
+            $sorties_count = \App\Models\Sortie::where('unite_id', $unite->id)->count();
+
+            $total_mouvements = $entrees_count + $sorties_count;
+
+            if ($total_mouvements > 0) {
+                return redirect()->route('admin.unites.index')
+                    ->with('error', "Impossible de supprimer cet article : {$entrees_count} entrée(s) et {$sorties_count} sortie(s) existent.");
+            }
+
+            // Supprimer la configuration de seuil si elle existe
+            \App\Models\ConfigurationSeuil::where('unite_id', $unite->id)->delete();
+
+            // Suppression réelle
+            $unite->delete();
+
+            return redirect()->route('admin.unites.index')
+                ->with('success', 'Article supprimé définitivement avec succès');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.unites.index')
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
         }
+    }
+    // Dans UniteController.php
+public function configurerSeuil(Request $request, Unite $unite)
+{
+    $validated = $request->validate([
+        'seuil' => 'required|numeric|min:0'
+    ]);
 
-        $unite->update(['actif' => false]);
+    ConfigurationSeuil::updateOrCreate(
+        ['unite_id' => $unite->id],  
+        [
+            'valeur_alerte' => $validated['seuil'],
+            'actif' => true
+        ]
+    );
 
-        return redirect()->route('admin.unites.index')
-            ->with('success', 'Article supprimé avec succès');
+    return back()->with('success', 'Seuil configuré');
+
     }
 }

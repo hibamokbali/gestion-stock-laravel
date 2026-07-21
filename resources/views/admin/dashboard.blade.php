@@ -4,9 +4,8 @@
 
 @section('content')
 
-<!-- ════════════════════════════════════════════════════ -->
 <!-- CARTES STATISTIQUES STOCK (Focus Principal) -->
-<!-- ════════════════════════════════════════════════════ -->
+
 <div class="row g-4 mb-4">
     <!-- Total Articles -->
     <div class="col-md-3">
@@ -100,9 +99,9 @@
     </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════ -->
-<!-- ARTICLES EN ALERTE (CRITIQUES) -->
-<!-- ════════════════════════════════════════════════════ -->
+
+<!-- ARTICLES EN ALERTE  -->
+
 <div class="table-card mb-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h5 class="fw-bold mb-0">
@@ -179,9 +178,19 @@
     @endif
 </div>
 
-<!-- ════════════════════════════════════════════════════ -->
+<!-- GRAPHIQUE ÉVOLUTION STOCK -->
+
+<div class="table-card mb-4">
+    <h6 class="fw-bold mb-3">
+        <i class="bi bi-graph-up text-primary me-2"></i>
+        Évolution Entrées/Sorties (6 derniers mois)
+    </h6>
+    <canvas id="chartEntreesSorties" height="100"></canvas>
+</div>
+
+
 <!-- TOP 5 ARTICLES LES PLUS CONSOMMÉS -->
-<!-- ════════════════════════════════════════════════════ -->
+
 <div class="row g-4 mb-4">
     <div class="col-md-6">
         <div class="table-card">

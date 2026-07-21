@@ -163,9 +163,9 @@
     </div>
 </div>
 
-<!-- ════════════════════════════════════════════════════ -->
+
 <!-- MODALS CONFIGURATION SEUILS (Admin Only) -->
-<!-- ════════════════════════════════════════════════════ -->
+
 @if(auth()->user()->isAdmin())
 @foreach($unites as $unite)
 <div class="modal fade" id="seuilModal{{ $unite->id }}" tabindex="-1" aria-hidden="true">
@@ -178,7 +178,7 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('admin.seuils.quick', $unite->id) }}" method="POST">
+            <form action="{{ route('admin.unites.configure-seuil', $unite) }}" method="POST">
                 @csrf
                 <div class="modal-body">
                     <!-- Info article -->
@@ -210,7 +210,8 @@
                         <label class="form-label">Nouveau Seuil d'Alerte <span class="text-danger">*</span></label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="bi bi-bell"></i></span>
-                            <input type="number" name="valeur_alerte" class="form-control" value="{{ $unite->seuil_alerte }}" step="0.01" min="0" placeholder="Ex: 10" required>
+                            {{-- ✅ CORRECTION ICI : name="valeur_alerte" → name="seuil" --}}
+                            <input type="number" name="seuil" class="form-control" value="{{ $unite->seuil_alerte }}" step="0.01" min="0" placeholder="Ex: 10" required>
                             <span class="input-group-text">{{ $unite->unite_mesure }}</span>
                         </div>
                         <small class="text-muted">

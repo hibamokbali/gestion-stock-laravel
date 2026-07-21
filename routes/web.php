@@ -61,7 +61,9 @@ Route::middleware('auth')->group(function () {
         Route::get('stock', [StockController::class, 'index'])->name('stock.index');
 
         // Configuration seuil rapide (modal)
-        Route::post('seuils/{unite}/quick', [ConfigurationSeuilController::class, 'quickUpdate'])->name('seuils.quick');
+        // ✅ AJOUTÉ - Configuration du seuil (ADMIN uniquement)
+        Route::post('unites/{unite}/configure-seuil', [UniteController::class, 'configurerSeuil'])
+            ->name('unites.configure-seuil');
 
         // PDF Fiche de décharge
         Route::get('sorties/{id}/pdf', [SortieController::class, 'generatePDF'])->name('sorties.pdf');
@@ -79,6 +81,9 @@ Route::middleware('auth')->group(function () {
 
         // Consultation Stock (lecture seule)
         Route::get('stock', [StockController::class, 'index'])->name('stock.index');
+        // VÉRIFIEZ si cette route existe
+        Route::post('/admin/unites/{unite}/configure-seuil', [UniteController::class, 'configurerSeuil'])
+            ->name('admin.unites.configurer-seuil');
 
         // PDF
         Route::get('sorties/{id}/pdf', [SortieController::class, 'generatePDF'])->name('sorties.pdf');

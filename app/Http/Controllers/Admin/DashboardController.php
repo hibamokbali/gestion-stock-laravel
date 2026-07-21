@@ -20,7 +20,7 @@ class DashboardController extends Controller
         $debut_mois = now()->startOfMonth();
 
         // STATS STOCK (LE PLUS IMPORTANT)
-  
+
 
         $tous_articles = Unite::with('configurationSeuil')
             ->where('actif', true)
@@ -56,17 +56,17 @@ class DashboardController extends Controller
         $stats['quantite_entrees_mois'] = Entree::where('created_at', '>=', $debut_mois)->sum('quantite');
         $stats['quantite_sorties_mois'] = Sortie::where('created_at', '>=', $debut_mois)->sum('quantite');
 
-    
+
         // ARTICLES CRITIQUES (Top 10 alertes)
-      
+
 
         $articles_critiques = $articles_alerte
             ->sortBy('stock_actuel')
             ->take(10);
 
-       
+
         // TOP CONSOMMÉS DU MOIS
-      
+
 
         $top_consommes = Sortie::with('unite:id,designation,unite_mesure')
             ->where('created_at', '>=', $debut_mois)
@@ -77,7 +77,7 @@ class DashboardController extends Controller
             ->get();
 
         // ACTIVITÉS RÉCENTES
-     
+
         $dernieres_entrees = Entree::with('unite:id,designation', 'user:id,name')
             ->latest()
             ->take(5)
@@ -92,12 +92,33 @@ class DashboardController extends Controller
         $stats['total_directions'] = Direction::where('actif', true)->count();
         $stats['total_employes'] = Employe::where('actif', true)->count();
 
+        // Graphique : Évolution Entrées/Sorties (6 mois)
+        $mois = [];
+        $data_entrees = [];
+        $data_sorties = [];
+
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $mois[] = ucfirst($date->translatedFormat('M Y'));
+
+            $data_entrees[] = Entree::whereMonth('created_at', $date->month)
+                ->whereYear('created_at', $date->year)
+                ->sum('quantite');
+
+            $data_sorties[] = Sortie::whereMonth('created_at', $date->month)
+                ->whereYear('created_at', $date->year)
+                ->sum('quantite');
+        }
+
         return view('admin.dashboard', compact(
             'stats',
             'articles_critiques',
             'top_consommes',
             'dernieres_entrees',
-            'dernieres_sorties'
+            'dernieres_sorties',
+            'mois',
+            'data_entrees',
+            'data_sorties'
         ));
     }
 }

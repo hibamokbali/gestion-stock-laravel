@@ -21,7 +21,7 @@ class Unite extends Model
 
     protected $appends = ['stock_actuel', 'en_alerte'];
 
-    
+
     public function categorie()
     {
         return $this->belongsTo(Categorie::class);
@@ -63,7 +63,10 @@ class Unite extends Model
 
     public function getEnAlerteAttribute()
     {
-        return $this->stock_actuel <= $this->seuil_alerte && $this->seuil_alerte > 0;
+        $stock = $this->stock_actuel;
+        $seuil = $this->seuil_alerte;
+
+        return $stock > 0 && $stock <= $seuil && $seuil > 0;
     }
 
     public function getPrixMoyenAttribute()
@@ -80,7 +83,7 @@ class Unite extends Model
 
         return $cout_total / $total_entrees;
     }
-    // ... (garder tout le code existant et ajouter :)
+
 
     // Historique des mouvements
     // Dernières entrées uniquement
@@ -130,5 +133,20 @@ class Unite extends Model
     public function getValeurStockAttribute()
     {
         return $this->stock_actuel * $this->prix_moyen;
+    }
+
+    public function calculerStockActuel()
+    {
+        return $this->stock_actuel;
+    }
+
+    public function estEnAlerte()
+    {
+        return $this->en_alerte;  // Utilise l'accessor
+    }
+
+    public function estEnRupture()
+    {
+        return $this->stock_actuel <= 0;
     }
 }

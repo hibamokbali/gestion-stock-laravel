@@ -104,9 +104,34 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        $user->update(['actif' => false]);
+        try {
+            // Empêcher la suppression de son propre compte
+            if ($user->id === auth()->id()) {
+                return redirect()->route('admin.users.index')
+                    ->with('error', "Vous ne pouvez pas supprimer votre propre compte.");
+            }
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'Utilisateur désactivé avec succès');
+            // Vérifier s'il y a des entrées liées
+            $entrees_count = \App\Models\Entree::where('user_id', $user->id)->count();
+
+            // Vérifier s'il y a des sorties liées
+            $sorties_count = \App\Models\Sortie::where('user_id', $user->id)->count();
+
+            $total_operations = $entrees_count + $sorties_count;
+
+            if ($total_operations > 0) {
+                return redirect()->route('admin.users.index')
+                    ->with('error', "Impossible de supprimer cet utilisateur : {$entrees_count} entrée(s) et {$sorties_count} sortie(s) enregistrées.");
+            }
+
+            // Suppression réelle
+            $user->delete();
+
+            return redirect()->route('admin.users.index')
+                ->with('success', 'Utilisateur supprimé définitivement avec succès');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.users.index')
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
     }
 }

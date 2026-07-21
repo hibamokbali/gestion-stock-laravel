@@ -78,12 +78,25 @@ class CategorieController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Categorie $categorie)
     {
-        $categorie = Categorie::findOrFail($id);
-        $categorie->update(['actif' => false]);
+        try {
+            // Vérifier s'il y a des articles liés
+            $articles_count = \App\Models\Unite::where('categorie_id', $categorie->id)->count();
 
-        return redirect()->route('admin.categories.index')
-            ->with('success', 'Catégorie supprimée avec succès');
+            if ($articles_count > 0) {
+                return redirect()->route('admin.categories.index')
+                    ->with('error', "Impossible de supprimer cette catégorie : {$articles_count} article(s) y appartiennent.");
+            }
+
+            // Suppression réelle
+            $categorie->delete();
+
+            return redirect()->route('admin.categories.index')
+                ->with('success', 'Catégorie supprimée définitivement avec succès');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.categories.index')
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
     }
 }

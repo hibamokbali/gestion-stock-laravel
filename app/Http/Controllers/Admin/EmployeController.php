@@ -89,9 +89,23 @@ class EmployeController extends Controller
      */
     public function destroy(Employe $employe)
     {
-        $employe->update(['actif' => false]);
+        try {
+            // Vérifier s'il y a des sorties liées
+            $sorties_count = \App\Models\Sortie::where('employe_id', $employe->id)->count();
 
-        return redirect()->route('admin.employes.index')
-            ->with('success', 'Employé supprimé avec succès');
+            if ($sorties_count > 0) {
+                return redirect()->route('admin.employes.index')
+                    ->with('error', "Impossible de supprimer cet employé : {$sorties_count} sortie(s) lui sont associées.");
+            }
+
+            // Suppression réelle
+            $employe->delete();
+
+            return redirect()->route('admin.employes.index')
+                ->with('success', 'Employé supprimé définitivement avec succès');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.employes.index')
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
     }
 }

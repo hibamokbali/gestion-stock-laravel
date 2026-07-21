@@ -86,12 +86,25 @@ class FournisseurController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Fournisseur $fournisseur)
     {
-        $fournisseur = Fournisseur::findOrFail($id);
-        $fournisseur->update(['actif' => false]);
+        try {
+            // Vérifier s'il y a des entrées liées
+            $entrees_count = \App\Models\Entree::where('fournisseur_id', $fournisseur->id)->count();
 
-        return redirect()->route('admin.fournisseurs.index')
-            ->with('success', 'Fournisseur supprimé avec succès');
+            if ($entrees_count > 0) {
+                return redirect()->route('admin.fournisseurs.index')
+                    ->with('error', "Impossible de supprimer ce fournisseur : {$entrees_count} entrée(s) lui sont associées.");
+            }
+
+            // Suppression réelle
+            $fournisseur->delete();
+
+            return redirect()->route('admin.fournisseurs.index')
+                ->with('success', 'Fournisseur supprimé définitivement avec succès');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.fournisseurs.index')
+                ->with('error', 'Erreur lors de la suppression : ' . $e->getMessage());
+        }
     }
 }
